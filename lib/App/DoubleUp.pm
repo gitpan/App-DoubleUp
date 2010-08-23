@@ -1,18 +1,22 @@
 package App::DoubleUp;
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 use strict;
 use warnings;
 use 5.010;
 
 use DBI;
-
+use YAML;
 
 local $|=1;
 
 sub new {
     my ($klass) = @_;
-    return bless {}, $klass;
+    my $self = {};
+
+    $self->{config} = YAML::LoadFile($ENV{HOME} . '/.doubleuprc');
+
+    return bless $self, $klass;
 }
 
 sub process_args {
@@ -43,9 +47,6 @@ sub process_files {
 
     return @querys;
 }
-
-# I need a database connection to use this...
-
 sub db_prepare {
     my ($db, $query) = @_;
     my $stmt = $db->prepare($query);
@@ -65,13 +66,13 @@ sub db_flatarray {
 
 sub list_of_schemata {
     my ($self) = @_;
-
     my $db = $self->connect_to_db('dbi:mysql:information_schema', $self->credentials);
-    return db_flatarray($db, "SELECT `SCHEMA_NAME` FROM `SCHEMATA` WHERE `SCHEMA_NAME` LIKE 'ww_%'");
+    return db_flatarray($db, $self->{config}{schemata_sql});
 }
 
 sub credentials {
-    return ('root', 'simple');
+    my $self = shift;
+    return @{$self->{config}{credentials}};
 }
 
 sub connect_to_db {
