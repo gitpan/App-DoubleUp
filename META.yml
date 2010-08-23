@@ -12,9 +12,9 @@ name: App-DoubleUp
 provides:
   App::DoubleUp:
     file: lib/App/DoubleUp.pm
-    version: v0.2.0
+    version: v0.2.1
 requires:
   DBI: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.2.0
+version: v0.2.1

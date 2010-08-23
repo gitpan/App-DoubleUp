@@ -1,5 +1,5 @@
 package App::DoubleUp;
-our $VERSION = '0.2.0';
+our $VERSION = '0.2.1';
 
 use strict;
 use warnings;
@@ -11,12 +11,17 @@ use YAML;
 local $|=1;
 
 sub new {
-    my ($klass) = @_;
-    my $self = {};
+    my ($klass, $args) = @_;
 
-    $self->{config} = YAML::LoadFile($ENV{HOME} . '/.doubleuprc');
+    my $self = bless {}, $klass;
 
-    return bless $self, $klass;
+    if (!$args->{config_file}) {
+        $args->{config_file} = $ENV{HOME} . '/.doubleuprc';
+    }
+
+    $self->{config} = YAML::LoadFile($args->{config_file});
+
+    return $self; 
 }
 
 sub process_args {
