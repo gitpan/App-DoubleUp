@@ -12,9 +12,11 @@ name: App-DoubleUp
 provides:
   App::DoubleUp:
     file: lib/App/DoubleUp.pm
-    version: v0.2.1
+    version: v0.2.4
 requires:
   DBI: 0
+  SQL::SplitStatement: 0.05003
+  YAML: 0.71
 resources:
   license: http://dev.perl.org/licenses/
-version: v0.2.1
+version: v0.2.4
