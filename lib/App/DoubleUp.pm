@@ -1,5 +1,5 @@
 package App::DoubleUp;
-our $VERSION = '0.2.4';
+our $VERSION = '0.4.0';
 
 use strict;
 use warnings;
@@ -9,6 +9,7 @@ use DBI;
 use YAML;
 use File::Slurp;
 use SQL::SplitStatement;
+use File::Spec::Functions 'catfile';
 
 local $|=1;
 
@@ -18,18 +19,48 @@ sub new {
     my $self = bless {}, $klass;
 
     if (!$args->{config_file}) {
-        $args->{config_file} = $ENV{HOME} . '/.doubleuprc';
+        for ('.', $ENV{HOME}) {
+            my $filename = catfile($_, '.doubleuprc');
+            if (-e $filename) {
+                $args->{config_file} = $filename;
+                last;
+            }
+        }
     }
+    $self->{config_file} = $args->{config_file};
 
-    $self->{config} = YAML::LoadFile($args->{config_file});
+    $self->{config} = $self->load_config($self->config_file);
 
     return $self; 
 }
 
+sub config_file {
+    my $self = shift;
+    return $self->{config_file};
+}
+
+sub load_config {
+    my ($self, $filename) = @_;
+    return YAML::LoadFile($filename);
+}
+
+sub source {
+    my ($self) = @_;
+    return $self->{config}{source};
+}
+
 sub process_args {
     my ($self, @args) = @_;
+
     $self->{command} = shift @args;
+
+    if ($self->{command} eq 'import1') {
+        $self->{db} = [shift @args];
+        $self->{command} = 'import';
+    }
+
     $self->{files} = \@args;
+
     return;
 }
 
@@ -71,8 +102,14 @@ sub db_flatarray {
 
 sub list_of_schemata {
     my ($self) = @_;
-    my $db = $self->connect_to_db('dbi:mysql:information_schema', $self->credentials);
-    return db_flatarray($db, $self->{config}{schemata_sql});
+    my $source = $self->source;
+    if ($source->{type} eq 'config') {
+        return @{ $source->{databases} };
+    }
+    elsif ($source->{type} eq 'database') {
+        my $db = $self->connect_to_db('dbi:mysql:information_schema', $self->credentials);
+        return db_flatarray($db, $source->{schemata_sql});
+    }
 }
 
 sub credentials {
@@ -111,8 +148,19 @@ sub process_one_query {
 }
 
 sub command {
-    my $self=shift;
+    my $self = shift;
     return $self->{command};
+}
+
+sub database_names {
+    my $self = shift;
+    $self->{db} //= [ $self->list_of_schemata ];
+    return $self->{db};
+}
+
+sub files {
+    my $self = shift;
+    return $self->{files};
 }
 
 sub run {
@@ -126,9 +174,9 @@ sub run {
             }
         }
         when ('import') {
-            my @querys = $self->process_files($self->{files});
+            my @querys = $self->process_files($self->files);
 
-            for my $schema ($self->list_of_schemata) {
+            for my $schema (@{ $self->database_names }) {
                 my $dsn = 'dbi:mysql:'.$schema;
                 say "DB: " . $schema;
                 my $db = $self->connect_to_db($dsn, $self->credentials);
@@ -152,8 +200,9 @@ sub usage {
     say "";
     say "List of commands";
     say "";
-    say "  listdb               list of schemata";
-    say "  import [filename]    import a file into each db";
+    say "  listdb                   list of schemata";
+    say "  import [filename]        import a file into each db";
+    say "  import1 [db] [filename]  import a file into one db";
     say "";
 }
 
