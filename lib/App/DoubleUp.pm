@@ -1,17 +1,18 @@
 package App::DoubleUp;
-our $VERSION = '0.4.1';
-
 use strict;
 use warnings;
+our $VERSION = '0.4.2';
+
 use 5.010;
 
+
+use Carp;
 use DBI;
 use YAML;
 use File::Slurp;
 use SQL::SplitStatement;
 use File::Spec::Functions 'catfile';
-
-local $|=1;
+use IO::Handle;
 
 sub new {
     my ($klass, $args) = @_;
@@ -119,7 +120,7 @@ sub credentials {
 
 sub connect_to_db {
     my ($self, $dsn, $user, $password) = @_;
-    return DBI->connect($dsn, $user, $password, { RaiseError => 1, PrintError => 0 }) or die "Can't $dsn";
+    return DBI->connect($dsn, $user, $password, { RaiseError => 1, PrintError => 0 }) || croak "Error while connecting to '$dsn'";
 }
 
 sub process_querys_for_one_db {
@@ -133,6 +134,7 @@ sub process_querys_for_one_db {
             print '!';
         }
     }
+    return;
 }
 
 sub process_one_query {
@@ -166,7 +168,12 @@ sub files {
 sub run {
     my ($self) = @_;
 
+    STDOUT->autoflush(1);
+
     given ($self->command) {
+        when ('version') {
+            say "doubleup version $VERSION";
+        }
         when ('listdb') {
             my @db = $self->list_of_schemata();
             for (@db) {
@@ -178,7 +185,7 @@ sub run {
 
             for my $schema (@{ $self->database_names }) {
                 my $dsn = 'dbi:mysql:'.$schema;
-                say "DB: " . $schema;
+                say "DB: $schema";
                 my $db = $self->connect_to_db($dsn, $self->credentials);
                 $self->process_querys_for_one_db($db, \@querys);
                 say '';
@@ -192,6 +199,7 @@ sub run {
             $self->usage;
         }
     }
+    return;
 
 }
 sub usage {
@@ -203,7 +211,9 @@ sub usage {
     say "  listdb                   list of schemata";
     say "  import [filename]        import a file into each db";
     say "  import1 [db] [filename]  import a file into one db";
+    say "  version                  show version";
     say "";
+    return;
 }
 
 1;
@@ -211,6 +221,22 @@ sub usage {
 =head1 NAME
 
 App::DoubleApp - Import SQL files into MySQL
+
+=head1 SYNOPSIS
+
+    $ doubleup listdb
+    ww_test1
+    ww_test2
+    ww_test3
+    ww_test4
+    $ doubleup import1 ww_test db/01_base.sql
+    .
+    $ doubleup import db/02_upgrade.sql
+    ....
+
+=head1 DESCRIPTION
+
+Import SQL files into a DBI compatible database.
 
 =head1 AUTHOR
 
