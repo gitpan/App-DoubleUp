@@ -1,5 +1,5 @@
 package App::DoubleUp;
-our $VERSION = '0.4.0';
+our $VERSION = '0.4.1';
 
 use strict;
 use warnings;
@@ -211,5 +211,20 @@ sub usage {
 =head1 NAME
 
 App::DoubleApp - Import SQL files into MySQL
+
+=head1 AUTHOR
+
+Peter Stuifzand E<lt>peter@stuifzand.euE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2013- Peter Stuifzand
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 SEE ALSO
 
 =cut

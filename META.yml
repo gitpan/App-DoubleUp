@@ -1,25 +1,36 @@
 ---
 abstract: 'Import SQL files into MySQL'
 author:
-  - unknown
-build_requires: {}
+  - 'Peter Stuifzand <peter@stuifzand.eu>'
+build_requires:
+  Path::Tiny: 0
 configure_requires:
-  Module::Build: 0.38
-dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
+  Module::Build::Tiny: 0.025
+dynamic_config: 0
+generated_by: 'Dist::Milla version v0.9.7, Dist::Zilla version 4.300032, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: App-DoubleUp
-provides:
-  App::DoubleUp:
-    file: lib/App/DoubleUp.pm
-    version: v0.4.0
+no_index:
+  directory:
+    - t
+    - xt
+    - inc
+    - share
+    - eg
+    - examples
 requires:
   DBI: 0
-  SQL::SplitStatement: 0.05003
-  YAML: 0.71
+  File::Slurp: 0
+  File::Spec::Functions: 0
+  SQL::SplitStatement: 0
+  YAML: 0
 resources:
-  license: http://dev.perl.org/licenses/
-version: v0.4.0
+  bugtracker: https://github.com/pstuifzand/DoubleUp/issues
+  homepage: https://github.com/pstuifzand/DoubleUp
+  repository: https://github.com/pstuifzand/DoubleUp.git
+version: 0.4.1
+x_contributors:
+  - 'Peter Stuifzand <peter.stuifzand@gmail.com>'
